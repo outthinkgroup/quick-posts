@@ -116,6 +116,7 @@ if (!class_exists('QuickPosts'))
 						$post_parent = $_POST['page_id'];
 						$page_template = $_POST['page_template'];
 						$post_category = $_POST['cat'];
+						$post_topic = (int)$_POST['topic'];
 						$external_url = $_POST['ext_url'];
 						// pulling in the "post options" options.
 						foreach ($_POST as $key => $value) {
@@ -146,6 +147,8 @@ if (!class_exists('QuickPosts'))
 						$data['post_type'] = $post_type;
 						$data['post_author'] = $post_author;
 						$data['post_category'] = array($post_category);
+						
+						
 						if ($url_arr) {
 							$i = 0;
 							// looping through each URL that is given in the array to get the proper values
@@ -153,37 +156,24 @@ if (!class_exists('QuickPosts'))
 								$response = wp_remote_get($value);
 								$body = wp_remote_retrieve_body($response);
 
-//								$html = str_get_html($body);
-//								var_dump($html);
 								$html = new simple_html_dom();
 
 								// Load HTML from a string
 								$html->load($body);
-//								var_dump($html);
-//								$ret = $html->find('meta');
 
-//								$doc = new DOMDocument();
-//								$doc->loadHTML($body);
-//								var_dump($doc);
 
-//								$html = file_get_html($value);
-//								echo $value.'<br />';
 								$uri = $value;
 								$title = $html->find('title', 0)->plaintext;
 								foreach($html->find('meta') as $element) {
-//									echo 'property: ';
-//									echo $element->property .'<br />';
-//									echo 'content: ';
-//									echo $element->content . '<hr />';
-
+									// getting the open graph image source
 									switch ($element->property) {
 										case 'og:image':
 										$imgsrc = $element->content;
-										//echo '<img src="'.$element->content.'">';
+
 											break;
 										case 'og:site_name':
 										$site_name = $element->content;
-//										echo $element->content. '<br />';
+
 											break;
 
 										case 'og:description':
@@ -226,22 +216,22 @@ if (!class_exists('QuickPosts'))
 								$pub_name = $site_name;
 								$taxomony = 'post_tag';
 								if (!empty($pub_name)) {
-									// Check if the pub name exists
+									// Check if the pub name exists & load variable with the ID
 									$publication_name = term_exists( $pub_name, $taxonomy, 0 );
-
+									
 									// Create pub name if it doesn't exist
 									if ( !$publication_name ) {
 										$publication_name = wp_insert_term( $pub_name, $taxomony, array( 'parent' => 0 ) );
 										$termID = $publication_name['term_taxonomy_id'];
 									} else {
-										$termID = $publication_name;
+										$termID = (int)$publication_name;
 									}
-									echo $termID;
-	//								print_r($publication_name);
+									//echo $termID;
+	
 									$custom_tax = array(
-									    'post_tag' => array(
-									        $termID,
-									    ));
+										'post_tag' => array($termID),
+										'topic' => $post_topic
+									);
 								}
 								// getting the dates array:
 								if (!empty($date_arr[$i])) {

@@ -1,3 +1,4 @@
+<?php $options = ''; ?>
 <style type="text/css" media="screen">
 	.form-table th {
 		width:48px;
@@ -73,14 +74,14 @@ $selected = get_option('qp_selected_template'); ?>
 		</div>
 		<div class="misc-pub-section misc-pub-section">
 			<label for="post_parent">Author:</label>
-			<?php
+			<?php 
 				$args = array(
 					'orderby'          => 'display_name',
 					'order'            => 'ASC',
 					'multi'            => 0,
 					'show'             => 'display_name',
 					'echo'             => 1,
-					'selected'         => 0,
+					'selected'         => get_current_user_id(),
 					'name'             => 'user',
 					'who'				=> 'authors'
 				);
@@ -89,15 +90,31 @@ $selected = get_option('qp_selected_template'); ?>
 		</div>
 	</div>
 	<div id="post-options">
+		
+		<?php
+		$args = array(
+			'public'   => true,
+
+		  ); 
+		  $output = 'objects'; // or objects
+		  $taxes = get_taxonomies( $args, $output );
+		foreach ($taxes as $tax) { ?>
 		<div class="misc-pub-section misc-pub-section-categories for-post">
-			<label for="cat">Category:</label>
+		<label for="cat"><?php echo $tax->label; ?>:</label>
 			<?php
 				$args = array(
-					'hide_empty' => 0
+					'taxonomy' => $tax->name,
+					'hide_empty' => 0,
+					'show_option_none' => '---',
+					'name' => $tax->name
 				); 
 				wp_dropdown_categories( $args );
 			?>
-		</div>
+			</div>
+			<?php
+		}
+
+		?>
 	</div>
 	<div id="page-options">
 		<div class="misc-pub-section misc-pub-section-template for-page">
@@ -162,9 +179,7 @@ if (empty($options[$selected])) {
 	echo '<div class="updated below-h2"><p>It doesn\'t look like you\'ve created a post template. Jump over to <a href="admin.php?page=qp-templates">the template creator and make one now.</a></div>';
 }
 	$newoptions[] = $options[$selected];
-	if (condition) {
-		# code...
-	}
+
 	for($i = 0; $i < count($newoptions); ++$i) {
 		$option = $newoptions[$i];
 		if ($option['title']) { ?>
