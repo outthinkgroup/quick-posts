@@ -150,7 +150,7 @@ jQuery(document).ready(function() {
 
 <div class="wrap">
 	<div class="icon32" id="icon-edit"><br></div>
-	<h2>Quick Post Templates</h2>
+	<h2>Quick Post Template Builder</h2>
 <div class="metabox">
 	<form action="" method="POST">
 		<p>Select which template you'd like to use to <a href="admin.php?page=add-quick-post">add Quick Posts.</a></p>
@@ -186,6 +186,8 @@ jQuery(document).ready(function() {
 	<div class="fields">
 
 		<?php wp_nonce_field('quick-posts-template'); ?>
+		<div style="background: #fff;border:#ddd;padding:20px;">
+		<p>Use this area to build your Quick Post Template.
 		<form class="newform" method="post" action="">
 			<h2>Template Name: <br>
 				<input type="text" name="template_name" value="" id="template_name"></h2>
@@ -193,6 +195,7 @@ jQuery(document).ready(function() {
 			</div>
 			<input type="submit" name="goForth" class="button-primary" value="Create Template" id="goForth">
 		</form>
+		</div>
 	</div>
 </div><!--END metabox-->
 </div><!--END wrao-->

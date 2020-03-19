@@ -8,15 +8,21 @@ Stable tag: 1.3
 
 Quick Post enables a WordPress user to quickly add multiple posts or pages at once, supports inserting child pages.
 
+== TODO List: ==
+
+* make it so that all taxonomies specific to the selected post type are available
+* make it so that tags can be added quickly and easily per each _BATCH_ not just each _post_.
+* Make js interface in template builder mo betta.
+* User can Assign a Page Template from a drop down. (removed in previous version for some reason)
+
 == Description ==
 
-Quick Post enables a WordPress user to quickly add multiple posts or pages at once. Version 1.3 now has the following features:
+Quick Post enables a WordPress user to quickly add multiple posts or pages at once. Version 1.5 now has the following features:
 
 * Specify whether content to be added is a post or a page
 * Plugin also supports custom post types
 * If Pages are added, user can specify Parent Pages (to add children)
-* User can Assign a Page Template from a drop down.
-* User can specify the Author of new posts/pages.
+* User can specify the Author of new post types
 * User can specify post status (Published / Draft / Pending Review)
 * User can add as many posts/pages as they choose by clicking “add more”
 * User can now choose a category from a drop-down to assign to new posts

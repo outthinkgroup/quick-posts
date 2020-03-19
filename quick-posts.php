@@ -2,7 +2,7 @@
 /*
 Plugin Name: Quick Posts [do not upgrade]
 Plugin URI: http://geekoutwith.me/quick-posts
-Description: [Modified -- do not upgrade] Add multiple pages or posts quickly and easily, apply page templates and parents to pages and categories and tags to posts. You can also set post status and author.
+Description: Add multiple pages or posts quickly and easily, apply page templates and parents to pages and categories and tags to posts. You can also set post status and author.
 Version: 1.3
 Author: Joseph Hinson
 Author URI: http://geekoutwith.me/
@@ -85,7 +85,7 @@ if (!class_exists('QuickPosts'))
 		{
 			add_menu_page('Add quick Post(s) or Page(s)', 'Quick Posts', 'administrator', 'add-quick-post', array(&$this, 'display_form'), plugin_dir_url( __FILE__ ).'/img/icon.png');
 			//add_submenu_page( $parent_slug, $page_title, $menu_title, $capability, $menu_slug, $function );
-			add_submenu_page( 'add-quick-post', 'Quick Post Templates', 'Quick Post Templates', 'manage_options', 'qp-templates', array(&$this, 'qp_template_editor') );
+			add_submenu_page( 'add-quick-post', 'Template Builder', 'Template Builder', 'manage_options', 'qp-templates', array(&$this, 'qp_template_editor') );
 
 		}
 		public function qp_template_editor() {
@@ -164,6 +164,7 @@ if (!class_exists('QuickPosts'))
 
 								$uri = $value;
 								$title = $html->find('title', 0)->plaintext;
+
 								foreach($html->find('meta') as $element) {
 									// getting the open graph image source
 									switch ($element->property) {
@@ -186,9 +187,10 @@ if (!class_exists('QuickPosts'))
 												$video = $videostr;
 											}
 											break;
-										case 'og:title' :
-										$title = $element->content;
-											break;
+// open graph title is here.
+											//	case 'og:title' :
+										//	$title = $element->content;
+										//	break;
 										case 'article:published_time':
 										$date = $element->content;
 											break;
@@ -212,6 +214,8 @@ if (!class_exists('QuickPosts'))
 								$site_name = str_replace('@', '', $site_name);
 								//setting the post title, and stripping the tags.
 								$post_title = strip_tags($title);
+								//var_dump($post_title);
+								//die;
 								$post_content = $pcontent;
 								$pub_name = $site_name;
 								$taxomony = 'post_tag';
