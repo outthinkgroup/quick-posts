@@ -109,6 +109,7 @@ if (!class_exists('QuickPosts'))
 
 					if ($publish_quick_posts)
 					{
+						print_r($_POST);
 						// All setup on the right table -- these will not change
 						$post_type = $_POST['post_type'];
 						$post_status = $_POST['post_status'];
@@ -117,10 +118,12 @@ if (!class_exists('QuickPosts'))
 						$page_template = $_POST['page_template'];
 						$post_category = $_POST['cat'];
 						$post_topic = (int)$_POST['topic'];
+						$post_publication = (int)$_POST['publication'];
 						$external_url = $_POST['ext_url'];
 						// pulling in the "post options" options.
-						foreach ($_POST as $key => $value) {
-							switch ($key) {
+						// the key / value pairs are field name => value
+						foreach ($_POST as $name => $value) {
+							switch ($name) {
 								case 'ext_url':
 									$url_arr = $value;
 									break;
@@ -146,13 +149,12 @@ if (!class_exists('QuickPosts'))
 						$data['post_parent'] = $post_parent;
 						$data['post_type'] = $post_type;
 						$data['post_author'] = $post_author;
-						$data['post_category'] = array($post_category);
-						
+						$data['post_category'] = array($post_category);						
 						
 						if ($url_arr) {
 							$i = 0;
 							// looping through each URL that is given in the array to get the proper values
-							foreach ($url_arr as $key => $value) {
+							foreach ( $url_arr as $key => $value ) {
 								$response = wp_remote_get($value);
 								$body = wp_remote_retrieve_body($response);
 
@@ -216,6 +218,7 @@ if (!class_exists('QuickPosts'))
 								$post_title = strip_tags($title);
 								//var_dump($post_title);
 								//die;
+								
 								$post_content = $pcontent;
 								$pub_name = $site_name;
 								$taxomony = 'post_tag';
@@ -231,10 +234,10 @@ if (!class_exists('QuickPosts'))
 										$termID = (int)$publication_name;
 									}
 									//echo $termID;
-	
 									$custom_tax = array(
 										'post_tag' => array($termID),
-										'topic' => $post_topic
+										//'topic' => array($post_topic),
+										//'publication' => array($post_publication)
 									);
 								}
 								// getting the dates array:
@@ -259,7 +262,7 @@ if (!class_exists('QuickPosts'))
 									$data['post_content'] = $post_content;
 								}
 								$data['tax_input'] = $custom_tax;
-								$data['tags_input'] = $post_tags;
+								//$data['tags_input'] = $post_tags;
 //								print_r($data);
 //								echo '<hr />';
 								// adding the post to the site
@@ -270,6 +273,8 @@ if (!class_exists('QuickPosts'))
 										update_post_meta($eID, 'post_video', $video);
 									}
 									$item = $this->set_post_thumbnail_from_url($imgsrc, $eID);
+									wp_set_object_terms($eID, $post_topic, 'topic');
+									wp_set_object_terms($eID, $post_publication, 'publication');
 									echo 'Added: <strong>'.get_the_title($eID).'</strong><br />';
 								}
 
@@ -306,9 +311,15 @@ if (!class_exists('QuickPosts'))
 									// converting the unix timestamp to the right format for WordPress to set the date.
 									$data['post_date'] = date('Y-m-d H:i:s', $post_date_format);
 								}
+								$custom_tax = array(
+									'topic' => array($post_topic),
+									'publication' => array($post_publication)
+								);
 								$data['post_title'] = $post_title;
 								$data['post_content'] = $post_content;
 								$data['tags_input'] = $post_tags;
+								//$data['tax_input'] = $custom_tax;
+								
 
 								if($eID = wp_insert_post( $data )) {
 									foreach ($_POST as $key => $value) {
@@ -317,6 +328,8 @@ if (!class_exists('QuickPosts'))
 											update_post_meta($eID, $key, $value[$i]);
 										}
 									}
+									wp_set_object_terms($eID, $post_topic, 'topic');
+									wp_set_object_terms($eID, $post_publication, 'publication');
 									if ($page_template != 'default' ) {
 										update_post_meta($eID, '_wp_page_template', $page_template);
 									}

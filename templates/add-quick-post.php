@@ -94,9 +94,8 @@ $selected = get_option('qp_selected_template'); ?>
 		<?php
 		$args = array(
 			'public'   => true,
-
 		  ); 
-		  $output = 'objects'; // or objects
+		  $output = 'objects';
 		  $taxes = get_taxonomies( $args, $output );
 		foreach ($taxes as $tax) { ?>
 		<div class="misc-pub-section misc-pub-section-categories for-post">
