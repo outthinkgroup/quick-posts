@@ -150,7 +150,6 @@ if (!class_exists('QuickPosts'))
 						$data['post_type'] = $post_type;
 						$data['post_author'] = $post_author;
 						$data['post_category'] = array($post_category);						
-						
 						if ($url_arr) {
 							$i = 0;
 							// looping through each URL that is given in the array to get the proper values
@@ -249,6 +248,7 @@ if (!class_exists('QuickPosts'))
 									// converting the unix timestamp to the right format for WordPress to set the date.
 									$data['post_date'] = date('Y-m-d H:i:s', $post_date_format);
 								} elseif($date) {
+
 									$post_date_format = strtotime($date);
 									// converting the unix timestamp to the right format for WordPress to set the date.
 									$data['post_date'] = date('Y-m-d H:i:s', $post_date_format);
@@ -262,6 +262,7 @@ if (!class_exists('QuickPosts'))
 									$data['post_content'] = $post_content;
 								}
 								$data['tax_input'] = $custom_tax;
+								
 								//$data['tags_input'] = $post_tags;
 //								print_r($data);
 //								echo '<hr />';
@@ -293,6 +294,7 @@ if (!class_exists('QuickPosts'))
 								$pre_content = '';
 								$termID = '';
 								$publication_name = '';
+								$custom_tax = '';
 							}
 						} else {
 							for ($i = 0; $i < count($title_arr); $i++) {

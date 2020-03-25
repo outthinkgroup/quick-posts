@@ -136,7 +136,6 @@ $selected = get_option('qp_selected_template'); ?>
 					'option_none_value' => 0,
 					'show_option_none' => 'none'
 				); 
-			
 				wp_dropdown_pages($arr);
 			?>
 		</div>
