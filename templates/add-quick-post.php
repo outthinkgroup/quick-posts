@@ -217,12 +217,11 @@ if (empty($options[$selected])) {
 <?php 	} if ($option['cfields']) {
 	foreach ($option['cfields'] as $key => $value) { ?>
 		<tr class="form-field">
-			<th valign="top" scope="row"><label><?php echo $value; ?></label></th>
-			<td><input type="text" style="width: 95%;" value="" size="50" class="code" name="<?php echo $key.'[]'; ?>">,
+			<th valign="top" scope="row"><label><?php echo esc_html($value); ?></label></th>
+			<td><input type="text" style="width: 95%;" value="" size="50" class="code" name="<?php echo esc_attr($key).'[]'; ?>">
 			</td>
 		</tr>
-<?	}
-}
+<?php  }
 }
 ?>
 	<tr>
