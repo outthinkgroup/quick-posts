@@ -152,7 +152,6 @@ if (!class_exists('QuickPosts'))
 						$data['post_category'] = array($post_category);						
 						if ($url_arr) {
 							$i = 0;
-							// looping through each URL that is given in the array to get the proper values
 							foreach ($url_arr as $key => $value) {
 								// Initialize default values from form data first
 								$post_title = !empty($title_arr[$i]) ? $title_arr[$i] : '';
@@ -160,156 +159,104 @@ if (!class_exists('QuickPosts'))
 								$post_tags = !empty($tags_arr[$i]) ? $tags_arr[$i] : '';
 								
 								// Only scrape URL if the form fields are empty
-								if (empty($post_title) || empty($post_content)) {
-									$response = wp_remote_get($value);
-									$body = wp_remote_retrieve_body($response);
-									
-									$html = new simple_html_dom();
-									$html->load($body);
-									
-									// Get scraped title if form title is empty
-									if (empty($post_title)) {
-										$title = $html->find('title', 0)->plaintext;
-										$post_title = strip_tags($title);
-									}
-									
-									// Initialize variables
-									$imgsrc = '';
-									$site_name = '';
-									$pcontent = '';
-									$video = '';
-									$date = '';
-									
-									foreach($html->find('meta') as $element) {
-										// getting the open graph image source
-										switch ($element->property) {
-											case 'og:image':
+								$response = wp_remote_get($value);
+								$body = wp_remote_retrieve_body($response);
+								
+								$html = new simple_html_dom();
+								$html->load($body);
+								
+								// Initialize variables
+								$imgsrc = '';
+								$site_name = '';
+								$pcontent = '';
+								$video = '';
+								$date = '';
+								
+								foreach($html->find('meta') as $element) {
+									switch ($element->property) {
+										case 'og:image':
 											$imgsrc = $element->content;
-
-												break;
-											case 'og:site_name':
+											break;
+										case 'og:site_name':
 											$site_name = $element->content;
-
-												break;
-
-											case 'og:description':
-	//										echo '<strong>'.$element->content.'</strong>';
+											break;
+										case 'og:description':
 											$pcontent = urldecode($element->content);
-												break;
-											case 'og:video':
-												$videostr = $element->content;
-												if (strpos($videostr,'vimeo') or strpos($videostr,'youtube') ) {
-													$video = $videostr;
-												}
-												break;
-	// open graph title is here.
-												//	case 'og:title' :
-										//	$title = $element->content;
-										//	break;
-											case 'article:published_time':
+											break;
+										case 'og:video':
+											$videostr = $element->content;
+											if (strpos($videostr,'vimeo') or strpos($videostr,'youtube')) {
+												$video = $videostr;
+											}
+											break;
+										case 'article:published_time':
 											$date = $element->content;
-												break;
-											}
-											switch ($element->name) {
-
-												case 'article:published':
-												$date = $element->content;
-													break;
-												case 'twitter:image':
-												$imgsrc = $element->content;
-												//echo '<img src="'.$element->content.'">';
-													break;
-
-												case 'cre':
-												$site_name = $element->content;
-													break;
-											}
+											break;
 									}
-									// removing any @ signs from the site name if they're in there.
-									$site_name = str_replace('@', '', $site_name);
-									//setting the post title, and stripping the tags.
-									$post_title = strip_tags($title);
-									//var_dump($post_title);
-									//die;
-									
-									$post_content = $pcontent;
-									$pub_name = $site_name;
-									$taxomony = 'post_tag';
-									if (!empty($pub_name)) {
-										// Check if the pub name exists & load variable with the ID
-										$publication_name = term_exists( $pub_name, $taxonomy, 0 );
-										
-										// Create pub name if it doesn't exist
-										if ( !$publication_name ) {
-											$publication_name = wp_insert_term( $pub_name, $taxomony, array( 'parent' => 0 ) );
-											$termID = $publication_name['term_taxonomy_id'];
-										} else {
-											$termID = (int)$publication_name;
-										}
-										//echo $termID;
-										$custom_tax = array(
-											'post_tag' => array($termID),
-											//'topic' => array($post_topic),
-											//'publication' => array($post_publication)
-										);
+									switch ($element->name) {
+										case 'article:published':
+											$date = $element->content;
+											break;
+										case 'twitter:image':
+											$imgsrc = $element->content;
+											break;
+										case 'cre':
+											$site_name = $element->content;
+											break;
 									}
-									// getting the dates array:
-									if (!empty($date_arr[$i])) {
-										$hasdate = true;
-										$post_dates = $date_arr[$i];
-										// converting the human style string to a unix timestamp
-										$post_date_format = strtotime($post_dates);
-										// converting the unix timestamp to the right format for WordPress to set the date.
-										$data['post_date'] = date('Y-m-d H:i:s', $post_date_format);
-									} elseif($date) {
-
-										$post_date_format = strtotime($date);
-										// converting the unix timestamp to the right format for WordPress to set the date.
-										$data['post_date'] = date('Y-m-d H:i:s', $post_date_format);
-									}
-									$post_tags = $tags_arr[$i];
-									$pre_content = $content_arr[$i];
-									$data['post_title'] = $post_title;
-									if (!empty($pre_content)) {
-										$data['post_content'] = $pre_content;
-									} else {
-										$data['post_content'] = $post_content;
-									}
-									$data['tax_input'] = $custom_tax;
-									
-									//$data['tags_input'] = $post_tags;
-	//								print_r($data);
-	//								echo '<hr />';
-									// adding the post to the site
-									// once that happens, also update the postmeta for the "link"
-									if($eID = wp_insert_post( $data )) {
-										update_post_meta($eID, 'link', $value);
-										if (strlen($video) > 0) {
-											update_post_meta($eID, 'post_video', $video);
-										}
-										$item = $this->set_post_thumbnail_from_url($imgsrc, $eID);
-										wp_set_object_terms($eID, $post_topic, 'topic');
-										wp_set_object_terms($eID, $post_publication, 'publication');
-									//	echo 'Added: <strong>'.get_the_title($eID).'</strong><br />';
-									}
-
-									$i++;
-	//								echo $eID . ' - '. $item;
-									// clearing out all the variables, so that one item doesn't bump another.
-									$imgsrc = '';
-									$eID = '';
-									$site_name = '';
-									$date = '';
-									$site_name = '';
-									$pcontent = '';
-									$title = '';
-									$uri = '';
-									$post_tags = '';
-									$pre_content = '';
-									$termID = '';
-									$publication_name = '';
-									$custom_tax = '';
 								}
+								
+								// Remove @ signs from site name
+								$site_name = str_replace('@', '', $site_name);
+								
+								// If title is empty, get it from scraping
+								if (empty($post_title)) {
+									$scraped_title = $html->find('title', 0)->plaintext;
+									$post_title = strip_tags($scraped_title);
+								}
+								
+								// If content is empty, get it from scraping
+								if (empty($post_content)) {
+									$post_content = $pcontent;
+								}
+
+								// Set up post data
+								$data['post_title'] = $post_title;
+								$data['post_content'] = $post_content;
+								
+								// Create the post
+								if($eID = wp_insert_post($data)) {
+									update_post_meta($eID, 'link', $value);
+									
+									// Store publisher as post meta
+									if (!empty($site_name)) {
+										update_post_meta($eID, 'publisher', $site_name);
+									}
+									
+									if (!empty($video)) {
+										update_post_meta($eID, 'post_video', $video);
+									}
+									if (!empty($imgsrc)) {
+										$item = $this->set_post_thumbnail_from_url($imgsrc, $eID);
+									}
+									
+									// Set topic and publication taxonomies if needed
+									wp_set_object_terms($eID, $post_topic, 'topic');
+									wp_set_object_terms($eID, $post_publication, 'publication');
+								}
+								
+								$i++;
+								
+								// Clear variables for next iteration
+								$imgsrc = '';
+								$eID = '';
+								$site_name = '';
+								$date = '';
+								$pcontent = '';
+								$title = '';
+								$uri = '';
+								$post_tags = '';
+								$pre_content = '';
 							}
 						} else {
 							for ($i = 0; $i < count($title_arr); $i++) {
