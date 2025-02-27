@@ -205,7 +205,15 @@ if (!class_exists('QuickPosts'))
 											break;
 									}
 								}
-								
+								// getting the dates array:
+								if (empty($date) && !empty($date_arr[$i]) ) {
+									$hasdate = true;
+									$post_dates = $date_arr[$i];
+									// converting the human style string to a unix timestamp
+									$post_date_format = strtotime($post_dates);
+									// converting the unix timestamp to the right format for WordPress to set the date.
+									$data['post_date'] = date('Y-m-d H:i:s', $post_date_format);
+								}
 								// Remove @ signs from site name
 								$site_name = str_replace('@', '', $site_name);
 								
@@ -226,7 +234,7 @@ if (!class_exists('QuickPosts'))
 								
 								// Create the post
 								if($eID = wp_insert_post($data)) {
-									update_post_meta($eID, 'link', $value);
+									update_post_meta($eID, 'press_url', $value);
 									
 									// Store publisher as post meta
 									if (!empty($site_name)) {
@@ -240,9 +248,18 @@ if (!class_exists('QuickPosts'))
 										$item = $this->set_post_thumbnail_from_url($imgsrc, $eID);
 									}
 									
-									// Set topic and publication taxonomies if needed
-									wp_set_object_terms($eID, $post_topic, 'topic');
-									wp_set_object_terms($eID, $post_publication, 'publication');
+									foreach ($_POST as $key => $value) {
+										// if the $value of the post object is an array...it's the custom fields so let's process them
+										// Todo: this should be cleaned up to be more organized.
+										if (is_array($value) && ($key != 'title' && $key != 'content' && $key != 'date' && $key != 'tags' && !empty($value)) ) {
+											update_post_meta($eID, $key, $value[$i]);
+										}
+									}
+									
+									if ($page_template != 'default' ) {
+										update_post_meta($eID, '_wp_page_template', $page_template);
+									}
+
 								}
 								
 								$i++;
