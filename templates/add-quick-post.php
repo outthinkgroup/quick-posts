@@ -26,7 +26,7 @@ $selected = get_option('qp_selected_template'); ?>
 <div class="metabox-holder has-right-sidebar" id="poststuff">
 
 <div class="inner-sidebar" id="side-info-column">
-<div class="meta-box-sortables ui-sortable" id="side-sortables"><div class="postbox " id="linksubmitdiv">
+<div class="meta-box-sortables ui-sortable" id="side-sortables"><div class="postbox" id="linksubmitdiv">
 <div title="Click to toggle" class="handlediv"><br></div><h3 class="hndle"><span>Customize</span></h3>
 <div class="inside">
 <div id="submitlink" class="submitbox">
@@ -164,7 +164,7 @@ $selected = get_option('qp_selected_template'); ?>
 
 <div class="meta-box-sortables ui-sortable" id="normal-sortables">
 
-<div class="postbox " id="linkadvanceddiv">
+<div class="postbox qp_post" id="linkadvanceddiv">
 <div title="Click to toggle" class="handlediv"><br></div><h3 class="hndle"><span><?php echo $selected; ?></span></h3>
 <div class="inside">
 	<table cellspacing="2" cellpadding="5" style="width: 100%;" class="form-table">

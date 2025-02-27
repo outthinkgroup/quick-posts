@@ -109,7 +109,7 @@ if (!class_exists('QuickPosts'))
 
 					if ($publish_quick_posts)
 					{
-						print_r($_POST);
+						//print_r($_POST);
 						// All setup on the right table -- these will not change
 						$post_type = $_POST['post_type'];
 						$post_status = $_POST['post_status'];
@@ -153,148 +153,163 @@ if (!class_exists('QuickPosts'))
 						if ($url_arr) {
 							$i = 0;
 							// looping through each URL that is given in the array to get the proper values
-							foreach ( $url_arr as $key => $value ) {
-								$response = wp_remote_get($value);
-								$body = wp_remote_retrieve_body($response);
+							foreach ($url_arr as $key => $value) {
+								// Initialize default values from form data first
+								$post_title = !empty($title_arr[$i]) ? $title_arr[$i] : '';
+								$post_content = !empty($content_arr[$i]) ? $content_arr[$i] : '';
+								$post_tags = !empty($tags_arr[$i]) ? $tags_arr[$i] : '';
+								
+								// Only scrape URL if the form fields are empty
+								if (empty($post_title) || empty($post_content)) {
+									$response = wp_remote_get($value);
+									$body = wp_remote_retrieve_body($response);
+									
+									$html = new simple_html_dom();
+									$html->load($body);
+									
+									// Get scraped title if form title is empty
+									if (empty($post_title)) {
+										$title = $html->find('title', 0)->plaintext;
+										$post_title = strip_tags($title);
+									}
+									
+									// Initialize variables
+									$imgsrc = '';
+									$site_name = '';
+									$pcontent = '';
+									$video = '';
+									$date = '';
+									
+									foreach($html->find('meta') as $element) {
+										// getting the open graph image source
+										switch ($element->property) {
+											case 'og:image':
+											$imgsrc = $element->content;
 
-								$html = new simple_html_dom();
+												break;
+											case 'og:site_name':
+											$site_name = $element->content;
 
-								// Load HTML from a string
-								$html->load($body);
+												break;
 
-
-								$uri = $value;
-								$title = $html->find('title', 0)->plaintext;
-
-								foreach($html->find('meta') as $element) {
-									// getting the open graph image source
-									switch ($element->property) {
-										case 'og:image':
-										$imgsrc = $element->content;
-
-											break;
-										case 'og:site_name':
-										$site_name = $element->content;
-
-											break;
-
-										case 'og:description':
-//										echo '<strong>'.$element->content.'</strong>';
-										$pcontent = urldecode($element->content);
-											break;
-										case 'og:video':
-											$videostr = $element->content;
-											if (strpos($videostr,'vimeo') or strpos($videostr,'youtube') ) {
-												$video = $videostr;
-											}
-											break;
-// open graph title is here.
-											//	case 'og:title' :
+											case 'og:description':
+	//										echo '<strong>'.$element->content.'</strong>';
+											$pcontent = urldecode($element->content);
+												break;
+											case 'og:video':
+												$videostr = $element->content;
+												if (strpos($videostr,'vimeo') or strpos($videostr,'youtube') ) {
+													$video = $videostr;
+												}
+												break;
+	// open graph title is here.
+												//	case 'og:title' :
 										//	$title = $element->content;
 										//	break;
-										case 'article:published_time':
-										$date = $element->content;
-											break;
-										}
-										switch ($element->name) {
-
-											case 'article:published':
+											case 'article:published_time':
 											$date = $element->content;
 												break;
-											case 'twitter:image':
-											$imgsrc = $element->content;
-											//echo '<img src="'.$element->content.'">';
-												break;
+											}
+											switch ($element->name) {
 
-											case 'cre':
-											$site_name = $element->content;
-												break;
-										}
-								}
-								// removing any @ signs from the site name if they're in there.
-								$site_name = str_replace('@', '', $site_name);
-								//setting the post title, and stripping the tags.
-								$post_title = strip_tags($title);
-								//var_dump($post_title);
-								//die;
-								
-								$post_content = $pcontent;
-								$pub_name = $site_name;
-								$taxomony = 'post_tag';
-								if (!empty($pub_name)) {
-									// Check if the pub name exists & load variable with the ID
-									$publication_name = term_exists( $pub_name, $taxonomy, 0 );
+												case 'article:published':
+												$date = $element->content;
+													break;
+												case 'twitter:image':
+												$imgsrc = $element->content;
+												//echo '<img src="'.$element->content.'">';
+													break;
+
+												case 'cre':
+												$site_name = $element->content;
+													break;
+											}
+									}
+									// removing any @ signs from the site name if they're in there.
+									$site_name = str_replace('@', '', $site_name);
+									//setting the post title, and stripping the tags.
+									$post_title = strip_tags($title);
+									//var_dump($post_title);
+									//die;
 									
-									// Create pub name if it doesn't exist
-									if ( !$publication_name ) {
-										$publication_name = wp_insert_term( $pub_name, $taxomony, array( 'parent' => 0 ) );
-										$termID = $publication_name['term_taxonomy_id'];
+									$post_content = $pcontent;
+									$pub_name = $site_name;
+									$taxomony = 'post_tag';
+									if (!empty($pub_name)) {
+										// Check if the pub name exists & load variable with the ID
+										$publication_name = term_exists( $pub_name, $taxonomy, 0 );
+										
+										// Create pub name if it doesn't exist
+										if ( !$publication_name ) {
+											$publication_name = wp_insert_term( $pub_name, $taxomony, array( 'parent' => 0 ) );
+											$termID = $publication_name['term_taxonomy_id'];
+										} else {
+											$termID = (int)$publication_name;
+										}
+										//echo $termID;
+										$custom_tax = array(
+											'post_tag' => array($termID),
+											//'topic' => array($post_topic),
+											//'publication' => array($post_publication)
+										);
+									}
+									// getting the dates array:
+									if (!empty($date_arr[$i])) {
+										$hasdate = true;
+										$post_dates = $date_arr[$i];
+										// converting the human style string to a unix timestamp
+										$post_date_format = strtotime($post_dates);
+										// converting the unix timestamp to the right format for WordPress to set the date.
+										$data['post_date'] = date('Y-m-d H:i:s', $post_date_format);
+									} elseif($date) {
+
+										$post_date_format = strtotime($date);
+										// converting the unix timestamp to the right format for WordPress to set the date.
+										$data['post_date'] = date('Y-m-d H:i:s', $post_date_format);
+									}
+									$post_tags = $tags_arr[$i];
+									$pre_content = $content_arr[$i];
+									$data['post_title'] = $post_title;
+									if (!empty($pre_content)) {
+										$data['post_content'] = $pre_content;
 									} else {
-										$termID = (int)$publication_name;
+										$data['post_content'] = $post_content;
 									}
-									//echo $termID;
-									$custom_tax = array(
-										'post_tag' => array($termID),
-										//'topic' => array($post_topic),
-										//'publication' => array($post_publication)
-									);
-								}
-								// getting the dates array:
-								if (!empty($date_arr[$i])) {
-									$hasdate = true;
-									$post_dates = $date_arr[$i];
-									// converting the human style string to a unix timestamp
-									$post_date_format = strtotime($post_dates);
-									// converting the unix timestamp to the right format for WordPress to set the date.
-									$data['post_date'] = date('Y-m-d H:i:s', $post_date_format);
-								} elseif($date) {
-
-									$post_date_format = strtotime($date);
-									// converting the unix timestamp to the right format for WordPress to set the date.
-									$data['post_date'] = date('Y-m-d H:i:s', $post_date_format);
-								}
-								$post_tags = $tags_arr[$i];
-								$pre_content = $content_arr[$i];
-								$data['post_title'] = $post_title;
-								if (!empty($pre_content)) {
-									$data['post_content'] = $pre_content;
-								} else {
-									$data['post_content'] = $post_content;
-								}
-								$data['tax_input'] = $custom_tax;
-								
-								//$data['tags_input'] = $post_tags;
-//								print_r($data);
-//								echo '<hr />';
-								// adding the post to the site
-								// once that happens, also update the postmeta for the "link"
-								if($eID = wp_insert_post( $data )) {
-									update_post_meta($eID, 'link', $uri);
-									if (strlen($video) > 0) {
-										update_post_meta($eID, 'post_video', $video);
+									$data['tax_input'] = $custom_tax;
+									
+									//$data['tags_input'] = $post_tags;
+	//								print_r($data);
+	//								echo '<hr />';
+									// adding the post to the site
+									// once that happens, also update the postmeta for the "link"
+									if($eID = wp_insert_post( $data )) {
+										update_post_meta($eID, 'link', $value);
+										if (strlen($video) > 0) {
+											update_post_meta($eID, 'post_video', $video);
+										}
+										$item = $this->set_post_thumbnail_from_url($imgsrc, $eID);
+										wp_set_object_terms($eID, $post_topic, 'topic');
+										wp_set_object_terms($eID, $post_publication, 'publication');
+									//	echo 'Added: <strong>'.get_the_title($eID).'</strong><br />';
 									}
-									$item = $this->set_post_thumbnail_from_url($imgsrc, $eID);
-									wp_set_object_terms($eID, $post_topic, 'topic');
-									wp_set_object_terms($eID, $post_publication, 'publication');
-									echo 'Added: <strong>'.get_the_title($eID).'</strong><br />';
-								}
 
-								$i++;
-//								echo $eID . ' - '. $item;
-								// clearing out all the variables, so that one item doesn't bump another.
-								$imgsrc = '';
-								$eID = '';
-								$site_name = '';
-								$date = '';
-								$site_name = '';
-								$pcontent = '';
-								$title = '';
-								$uri = '';
-								$post_tags = '';
-								$pre_content = '';
-								$termID = '';
-								$publication_name = '';
-								$custom_tax = '';
+									$i++;
+	//								echo $eID . ' - '. $item;
+									// clearing out all the variables, so that one item doesn't bump another.
+									$imgsrc = '';
+									$eID = '';
+									$site_name = '';
+									$date = '';
+									$site_name = '';
+									$pcontent = '';
+									$title = '';
+									$uri = '';
+									$post_tags = '';
+									$pre_content = '';
+									$termID = '';
+									$publication_name = '';
+									$custom_tax = '';
+								}
 							}
 						} else {
 							for ($i = 0; $i < count($title_arr); $i++) {

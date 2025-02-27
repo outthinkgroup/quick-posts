@@ -1,7 +1,7 @@
 (function($) {
 	
 var quick_post_fields = [
-'<div class="postbox " id="linkadvanceddiv">'                                                                    ,
+'<div class="postbox qp_post" id="linkadvanceddiv">'                                                                    ,
 '<div title="Click to toggle" class="handlediv"><br></div><h3 class="hndle"><span>Quick Post Content</span></h3>',
 '<div class="inside">'                                                                                           ,
 '<table cellspacing="2" cellpadding="5" style="width: 100%;" class="form-table">'                                ,
@@ -44,18 +44,26 @@ var quick_post_fields = [
 ];
 	
 	$(function() {
-		
-		$('.handlediv').live('click', function() {
+		$(document).on('click', '.handlediv', function() {
 			$(this).parent().find('.inside').slideToggle('fast');
 		});
 		
-		$('input.add_more').live('click', function() {
+		$(document).on('click', 'input.add_more', function() {
 			var tcontent = $(this).parents('.postbox');
-			tcontent.clone().appendTo( $('#normal-sortables')).find('input[type=text]').val('');
+			tcontent.clone().appendTo($('#normal-sortables')).find('input[type=text]').val('');
 		});
 		
-		$('input.remove_this').live('click', function() {
+		$(document).on('click', 'input.remove_this', function() {
+			// Count total number of postboxes
+			var totalBoxes = $('.qp_post').length;
+			
+			// Only remove if there's more than one box
+			if (totalBoxes > 1) {
 				$(this).parents('.postbox').remove();
+			} else {
+				alert('Cannot remove the last form. At least one must remain.');
+				// Or you could hide/disable the remove button instead of showing an alert
+			}
 		});
 		$(document).ready(function() {
 			pageopts = $('#page-options').remove();
