@@ -1,11 +1,11 @@
 <?php
 /*
-Plugin Name: Quick Posts [do not upgrade]
-Plugin URI: http://geekoutwith.me/quick-posts
+Plugin Name: Quick Posts
+Plugin URI: https://outthink.co/quick-posts
 Description: Add multiple pages or posts quickly and easily, apply page templates and parents to pages and categories and tags to posts. You can also set post status and author.
-Version: 1.3
+Version: 2.0
 Author: Joseph Hinson
-Author URI: http://geekoutwith.me/
+Author URI: https://outthink.co
 License: GPL2
 */
 include_once('inc/dom_scraping_functions.php');
@@ -337,5 +337,3 @@ if (class_exists('QuickPosts'))
 	$quickposts = new QuickPosts();
 	register_activation_hook(__FILE__, array(&$quickposts, 'install'));
 }
-
-?>
