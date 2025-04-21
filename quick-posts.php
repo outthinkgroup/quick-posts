@@ -127,6 +127,9 @@ if (!class_exists('QuickPosts'))
 								case 'ext_url':
 									$url_arr = $value;
 									break;
+								case 'image_url':
+									$image_url_arr = $value;
+									break;
 								case 'title':
 									$title_arr = $value;
 									break;
@@ -244,14 +247,18 @@ if (!class_exists('QuickPosts'))
 									if (!empty($video)) {
 										update_post_meta($eID, 'post_video', $video);
 									}
-									if (!empty($imgsrc)) {
+									
+									// Check for image URL from form first, then use scraped image if available
+									if (!empty($image_url_arr[$i])) {
+										$item = $this->set_post_thumbnail_from_url($image_url_arr[$i], $eID);
+									} elseif (!empty($imgsrc)) {
 										$item = $this->set_post_thumbnail_from_url($imgsrc, $eID);
 									}
 									
 									foreach ($_POST as $key => $value) {
 										// if the $value of the post object is an array...it's the custom fields so let's process them
 										// Todo: this should be cleaned up to be more organized.
-										if (is_array($value) && ($key != 'title' && $key != 'content' && $key != 'date' && $key != 'tags' && !empty($value)) ) {
+										if (is_array($value) && ($key != 'title' && $key != 'content' && $key != 'date' && $key != 'tags' && $key != 'image_url' && !empty($value)) ) {
 											update_post_meta($eID, $key, $value[$i]);
 										}
 									}
@@ -303,9 +310,14 @@ if (!class_exists('QuickPosts'))
 								
 
 								if($eID = wp_insert_post( $data )) {
+									// Process image URL if provided
+									if (!empty($image_url_arr[$i])) {
+										$this->set_post_thumbnail_from_url($image_url_arr[$i], $eID);
+									}
+									
 									foreach ($_POST as $key => $value) {
 										// if the $value of the post object is an array...it's the custom fields, so let's move on with it.
-										if (is_array($value) && ($key != 'title' && $key != 'content' && $key != 'date' && $key != 'tags') ) {
+										if (is_array($value) && ($key != 'title' && $key != 'content' && $key != 'date' && $key != 'tags' && $key != 'image_url') ) {
 											update_post_meta($eID, $key, $value[$i]);
 										}
 									}

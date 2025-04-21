@@ -193,6 +193,11 @@ $field_definitions = [
 		'type' => 'input',
 		'extra' => ''
 	],
+	'image_url' => [
+		'label' => 'Image URL',
+		'type' => 'input',
+		'extra' => ''
+	],
 	'date' => [
 		'label' => 'Date',
 		'type' => 'input',

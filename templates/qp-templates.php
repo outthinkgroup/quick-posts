@@ -38,6 +38,9 @@
 			if ($_POST['post_title']) {
 				$mastervar[$tname]['title'] = true;
 			}
+			if ($_POST['image_url']) {
+				$mastervar[$tname]['image_url'] = true;
+			}
 			if ($_POST['ext_url']) {
 				$mastervar[$tname]['ext_url'] = true;
 			}
@@ -123,6 +126,10 @@ jQuery(document).ready(function() {
 			newInput = '<p><label for="ext_url">External URL</label><input type="text"  name="ext_url" value="External URL"></p>';
 			jQuery('#exturl-option').remove();
 			break;
+		case 'image_url':
+			newInput = '<p><label for="image_url">Image URL</label><input type="text"  name="image_url" value="Image URL"></p>';
+			jQuery('#image-url-option').remove();
+			break;
 		case 'title':
 			newInput = '<p><label for="post_title">Post Title</label><input type="text"  name="post_title" value="Post Title"></p>';
 			jQuery('#title-option').remove();
@@ -173,6 +180,7 @@ jQuery(document).ready(function() {
 		<p>
 		<select name="fields" id="selector" id="#" size="1">
 			<option value="">Select your options here</option>
+			<option id="image-url-option" value="image_url">Image URL</option>
 			<option id="exturl-option" value="ext_url">External URL</option>
 			<option id="title-option" value="title">Title</option>
 			<option id="content-option" value="content">Content</option>		
